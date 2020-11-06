@@ -1,0 +1,51 @@
+variable "region" {
+  description = "Selected AWS region"
+}
+
+variable "env" {
+  description = "The environment (e.g. prod, dev, stage)"
+}
+
+variable "cert_issuer" {
+  description = "Common Name for CA Certificate"
+}
+
+variable "clients" {
+  description = "A list of client certificate name"
+  default     = ["client"]
+}
+
+variable "key_save_folder" {
+  description = "Where to store keys (relative to pki folder)"
+  default     = "clientvpn_keys"
+}
+
+variable "subnet_id" {
+  description = "The subnet ID to which we need to associate the VPN Client Connection."
+  type        = string
+}
+
+variable "client_cidr_block" {
+  description = "VPN CIDR block, must not overlap with VPC CIDR."
+  default     = "10.250.0.0/16"
+  type        = string
+}
+
+variable "target_cidr_block" {
+  description = "The CIDR block to wich the client will have access to. Might be VPC CIDR's block for example."
+}
+
+variable "name" {
+  description = "The name of the VPN Client Connection."
+  type        = string
+}
+
+variable "cloudwatch_log_group" {
+  description = "The name of the cloudwatch log group."
+  type        = string
+}
+
+variable "cloudwatch_log_stream" {
+  description = "The name of the cloudwatch log stream."
+  type        = string
+}

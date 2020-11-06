@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+set -x
+
+KEY_SAVE_FOLDER_PATH=$PKI_FOLDER_NAME/$KEY_SAVE_FOLDER
+FULL_CLIENT_CERTIFICATE_NAME=$CLIENT_CERT_NAME.$CERT_ISSUER
+
+# ${MODULE_PATH}/scripts/decrypt.sh
+
+aws ec2 export-client-vpn-client-configuration --client-vpn-endpoint-id $CLIENT_VPN_ID --output text > $FULL_CLIENT_CERTIFICATE_NAME.ovpn
+
+echo "<cert>" >> $FULL_CLIENT_CERTIFICATE_NAME.ovpn
+cat $KEY_SAVE_FOLDER_PATH/$FULL_CLIENT_CERTIFICATE_NAME.crt >> $FULL_CLIENT_CERTIFICATE_NAME.ovpn
+echo "</cert>" >> $FULL_CLIENT_CERTIFICATE_NAME.ovpn
+
+echo "<key>" >> $FULL_CLIENT_CERTIFICATE_NAME.ovpn
+cat $KEY_SAVE_FOLDER_PATH/$FULL_CLIENT_CERTIFICATE_NAME.key >> $FULL_CLIENT_CERTIFICATE_NAME.ovpn
+echo "</key>" >> $FULL_CLIENT_CERTIFICATE_NAME.ovpn
+
+# ${MODULE_PATH}/scripts/encrypt.sh
