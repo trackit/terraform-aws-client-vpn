@@ -116,7 +116,7 @@ variable "vpn_endpoint_cloudwatch_log_stream" {
 }
 ```
 
-```
+```hcl
 # vpn.tf
 module "client_vpn" {
   source                = "github.com/trackit/terraform-aws-client-vpn"
