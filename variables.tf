@@ -47,6 +47,7 @@ variable "target_cidr_block" {
 variable "vpn_name" {
   description = "The name of the VPN Client Connection."
   type        = string
+  default = "My-VPN"
 }
 
 variable "cloudwatch_log_group" {
