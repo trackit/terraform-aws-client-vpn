@@ -24,7 +24,7 @@ Terraform 0.12 and newer.
 
 No provider.
 
-## Usage
+## Usage Example
 
 ```hcl
 module "client_vpn" {
@@ -33,7 +33,7 @@ module "client_vpn" {
   env                   = "production"
   cert_issuer           = "mycompany.internal"
   cert_server_name      = "mycompany"
-  aws_tenant_name       = "aws"
+  aws_tenant_name       = "aws-xyz"
   //key_save_folder
   clients               = ["my_client1", "my_client2"]
   subnet_id             = "subnet-12345678"
@@ -45,8 +45,9 @@ module "client_vpn" {
 }
 ```
 
-### alternative with variable.tf and tfvars file
+### Alternative example using variables.tf, vpn.tf and envs.tfvars files
 ```hcl
+# variables.tf
 /*
 // VPN Endpoint variables
 */
@@ -116,6 +117,7 @@ variable "vpn_endpoint_cloudwatch_log_stream" {
 ```
 
 ```
+# vpn.tf
 module "client_vpn" {
   source                = "github.com/trackit/terraform-aws-client-vpn"
   region                = var.region
@@ -135,11 +137,12 @@ module "client_vpn" {
 ```
 
 ```hcl
+# envs.tfvars
 // -- VPN Endpoint
 vpn_endpoint_clients = ["user1"]
 vpn_endpoint_cert_issuer = "company.internal"
 vpn_endpoint_cert_server_name ="company"
-vpn_endpoint_aws_tenant_name ="aws-customer"
+vpn_endpoint_aws_tenant_name ="aws-xyz"
 //vpn_endpoint_key_save_folder =
 vpn_endpoint_subnet_id = "subnet-123456"
 vpn_endpoint_client_cidr_block = "10.250.0.0/16"
