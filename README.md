@@ -18,11 +18,15 @@ Terraform 0.12 and newer.
 ```hcl
 module "client_vpn" {
   source                = "github.com/trackit/terraform-aws-client-vpn"
-  region                = "us-east-1"
-  env                   = "production"
+  //region                = "us-east-1"
+  //env                   = "production"
   cert_issuer           = "mycompany.internal"
+  cert_server_name      = "mycompany"
+  aws_tenant_name       = "aws"
+  //key_save_folder
   clients               = ["my_client1", "my_client2"]
-  subnet_id             = ["subnet-12345678", "subnet-87654321"]
+  subnet_id             = "subnet-12345678"
+  client_cidr_block     = "10.250.0.0/16"
   target_cidr_block     = "10.0.0.0/16"
   name                  = "My VPN Endpoint"
   cloudwatch_log_group  = "my_vpn_log_group"
