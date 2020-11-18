@@ -4,12 +4,13 @@ set -x
 
 CWD=$(pwd)
 
-if [ -f "$PKI_FOLDER_NAME.tar" ]; then
+if [ -d "$PKI_FOLDER_NAME" ]; then
     echo "PKI seems to be already configured."
 else
     echo "Need to pull project"
     git clone https://github.com/OpenVPN/easy-rsa.git
-    mv easy-rsa/easyrsa3 $PKI_FOLDER_NAME
+    mkdir $PKI_FOLDER_NAME
+    cp -r easy-rsa/easyrsa3/* $PKI_FOLDER_NAME
     rm -rf easy-rsa
     cd $PKI_FOLDER_NAME
     ./easyrsa init-pki

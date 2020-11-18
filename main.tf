@@ -12,7 +12,8 @@ locals {
   }
 
   # default-client is a certificate that will be uploaded to ACM. Other Client cert does not need to be uploaded to ACM.
-  clients = concat(["default-client"], var.clients)
+  #clients = concat(["default-client"], var.clients)
+  clients = concat(var.clients)
 }
 
 resource "aws_kms_key" "sops" {
@@ -32,15 +33,19 @@ resource "null_resource" "server_certificate" {
 }
 
 data "local_file" "server_private_key" {
-  filename = null_resource.server_certificate.id > 0 ? "${path.module}/../pki_${var.env}/${var.key_save_folder}/server.key" : ""
+  depends_on = [null_resource.server_certificate]
+  #filename = null_resource.server_certificate.id > 0 ? "${path.module}/pki_${var.env}/${var.key_save_folder}/server.key" : ""
+  filename = null_resource.server_certificate.id > 0 ? "pki_${var.env}/${var.key_save_folder}/server.key" : ""
 }
 
 data "local_file" "server_certificate_body" {
-  filename = null_resource.server_certificate.id > 0 ? "${path.module}/../pki_${var.env}/${var.key_save_folder}/server.crt" : ""
+  depends_on = [null_resource.server_certificate]
+  filename = null_resource.server_certificate.id > 0 ? "pki_${var.env}/${var.key_save_folder}/server.crt" : ""
 }
 
 data "local_file" "server_certificate_chain" {
-  filename = null_resource.server_certificate.id > 0 ? "${path.module}/../pki_${var.env}/${var.key_save_folder}/ca.crt" : ""
+  depends_on = [null_resource.server_certificate]
+  filename = null_resource.server_certificate.id > 0 ? "pki_${var.env}/${var.key_save_folder}/ca.crt" : ""
 }
 
 resource "aws_acm_certificate" "server_cert" {
@@ -52,6 +57,9 @@ resource "aws_acm_certificate" "server_cert" {
 
   lifecycle {
     ignore_changes = [options, private_key, certificate_body, certificate_chain]
+  }
+  tags = {
+    Name = var.cert_server_name
   }
 }
 
@@ -68,29 +76,36 @@ resource "null_resource" "client_certificate" {
   }
 }
 
-data "local_file" "client_private_key" {
-  filename = null_resource.client_certificate[0].id > 0 ? "${path.module}/../pki_${var.env}/${var.key_save_folder}/default-client.${var.cert_issuer}.key" : ""
-}
+# data "local_file" "client_private_key" {
+#   depends_on = [null_resource.client_certificate]
+#   #filename = null_resource.client_certificate[0].id > 0 ? "${path.module}/pki_${var.env}/${var.key_save_folder}/default-client.${var.cert_issuer}.key" : ""
+#   filename = null_resource.client_certificate[0].id > 0 ? "pki_${var.env}/${var.key_save_folder}/default-client.${var.cert_issuer}.key" : ""
+# }
 
-data "local_file" "client_certificate_body" {
-  filename = null_resource.client_certificate[0].id > 0 ? "${path.module}/../pki_${var.env}/${var.key_save_folder}/default-client.${var.cert_issuer}.crt" : ""
-}
+# data "local_file" "client_certificate_body" {
+#   depends_on = [null_resource.client_certificate]
+#   filename = null_resource.client_certificate[0].id > 0 ? "pki_${var.env}/${var.key_save_folder}/default-client.${var.cert_issuer}.crt" : ""
+# }
 
-resource "aws_acm_certificate" "client_cert" {
-  depends_on = [null_resource.client_certificate]
+# resource "aws_acm_certificate" "client_cert" {
+#   depends_on = [null_resource.client_certificate]
 
-  private_key       = data.local_file.client_private_key.content
-  certificate_body  = data.local_file.client_certificate_body.content
-  certificate_chain = data.local_file.server_certificate_chain.content
+#   private_key       = data.local_file.client_private_key.content
+#   certificate_body  = data.local_file.client_certificate_body.content
+#   certificate_chain = data.local_file.server_certificate_chain.content
 
-  lifecycle {
-    ignore_changes = [options, private_key, certificate_body, certificate_chain]
-  }
-}
+#   lifecycle {
+#     ignore_changes = [options, private_key, certificate_body, certificate_chain]
+#   }
+#   tags {
+#     name = var.cert_client_name
+#   }
+# }
 
 resource "aws_ec2_client_vpn_endpoint" "client_vpn" {
-  depends_on             = [aws_acm_certificate.client_cert, aws_acm_certificate.server_cert]
-  description            = var.name
+  #depends_on             = [aws_acm_certificate.client_cert, aws_acm_certificate.server_cert]
+  depends_on             = [aws_acm_certificate.server_cert]
+  description            = var.vpn_name
   server_certificate_arn = aws_acm_certificate.server_cert.arn
   client_cidr_block      = var.client_cidr_block
   split_tunnel           = true
@@ -101,7 +116,7 @@ resource "aws_ec2_client_vpn_endpoint" "client_vpn" {
 
   authentication_options {
     type                       = "certificate-authentication"
-    root_certificate_chain_arn = aws_acm_certificate.client_cert.arn
+    root_certificate_chain_arn = aws_acm_certificate.server_cert.arn
   }
 
   connection_log_options {
@@ -116,6 +131,10 @@ resource "aws_ec2_client_vpn_endpoint" "client_vpn" {
     })
     command = "${path.module}/scripts/authorize_client.sh"
   }
+
+  tags = {
+    Name = var.vpn_name
+  }
 }
 
 resource "null_resource" "export_clients_vpn_config" {
@@ -128,7 +147,8 @@ resource "null_resource" "export_clients_vpn_config" {
   provisioner "local-exec" {
     environment = merge(local.provisioner_base_env, {
       "CLIENT_VPN_ID"    = aws_ec2_client_vpn_endpoint.client_vpn.id,
-      "CLIENT_CERT_NAME" = local.clients[count.index]
+      "CLIENT_CERT_NAME" = local.clients[count.index],
+      "TENANT_NAME" = var.aws_tenant_name
     })
     command = "${path.module}/scripts/export_client_vpn_config.sh"
   }
