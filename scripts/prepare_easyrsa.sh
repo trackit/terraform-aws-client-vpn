@@ -4,12 +4,13 @@ set -x
 
 CWD=$(pwd)
 
-if [ -f "$PKI_FOLDER_NAME.tar" ]; then
+if [ -d "$PKI_FOLDER_NAME" ]; then
     echo "PKI seems to be already configured."
 else
     echo "Need to pull project"
     git clone https://github.com/OpenVPN/easy-rsa.git
-    mv easy-rsa/easyrsa3 $PKI_FOLDER_NAME
+    mkdir $PKI_FOLDER_NAME
+    cp -r easy-rsa/easyrsa3/* $PKI_FOLDER_NAME
     rm -rf easy-rsa
     cd $PKI_FOLDER_NAME
     ./easyrsa init-pki
@@ -20,8 +21,4 @@ else
     cp pki/issued/server.crt $KEY_SAVE_FOLDER
     cp pki/private/server.key $KEY_SAVE_FOLDER
     cd $KEY_SAVE_FOLDER
-    # aws acm import-certificate --certificate-arn $ACM_SERVER_CERTIFICATE_ARN --certificate file://server.crt --private-key file://server.key --certificate-chain file://ca.crt --region $REGION
 fi
-
-# cd $CWD
-# ${MODULE_PATH}/scripts/encrypt.sh

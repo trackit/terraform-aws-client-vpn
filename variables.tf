@@ -6,13 +6,23 @@ variable "env" {
   description = "The environment (e.g. prod, dev, stage)"
 }
 
-variable "cert_issuer" {
-  description = "Common Name for CA Certificate"
-}
-
 variable "clients" {
   description = "A list of client certificate name"
-  default     = ["client"]
+}
+
+variable "cert_issuer" {
+  description = "Common Name for CA Certificate"
+  default = "CA"
+}
+
+variable "cert_server_name" {
+  description = "Name for the Server Certificate"
+  default = "Server"
+}
+
+variable "aws_tenant_name" {
+  description = "Name for the AWS Tenant"
+  default = "AWS"
 }
 
 variable "key_save_folder" {
@@ -26,8 +36,7 @@ variable "subnet_id" {
 }
 
 variable "client_cidr_block" {
-  description = "VPN CIDR block, must not overlap with VPC CIDR."
-  default     = "10.250.0.0/16"
+  description = "VPN CIDR block, must not overlap with VPC CIDR. Client cidr block must be at least a /22 range."
   type        = string
 }
 
@@ -35,9 +44,10 @@ variable "target_cidr_block" {
   description = "The CIDR block to wich the client will have access to. Might be VPC CIDR's block for example."
 }
 
-variable "name" {
+variable "vpn_name" {
   description = "The name of the VPN Client Connection."
   type        = string
+  default = "My-VPN"
 }
 
 variable "cloudwatch_log_group" {
