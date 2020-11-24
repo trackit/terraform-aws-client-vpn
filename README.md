@@ -28,7 +28,7 @@ No provider.
 
 ```hcl
 module "client_vpn" {
-  source                = "github.com/trackit/terraform-aws-client-vpn"
+  source                = "github.com/trackit/terraform-aws-client-vpn?ref=v0.1.0"
   region                = "us-east-1"
   env                   = "production"
   cert_issuer           = "mycompany.internal"
