@@ -59,3 +59,33 @@ variable "cloudwatch_log_stream" {
   description = "The name of the cloudwatch log stream."
   type        = string
 }
+
+variable "aws_cli_profile_name" {
+  description = "the name of the aws cli profile used in scripts"
+  type        = string
+  default     = "default"
+}
+
+variable "client_authentication_options" {
+  description = "the type of client authentication to be used : certificate-authentication / directory-service-authentication / federated-authentication"
+  type        = string
+  default     = "certificate-authentication"
+}
+
+variable "active_directory_id" {
+  description = "The ID of the Active Directory to be used for authentication if type is directory-service-authentication"
+  type        = string
+  default     = null
+}
+
+variable "root_certificate_chain_arn" {
+  description = "the type of client authentication to be used : certificate-authentication / directory-service-authentication / federated-authentication"
+  type        = string
+  default     = aws_acm_certificate.server_cert.arn
+}
+
+variable "saml_provider_arn" {
+  description = "The ARN of the IAM SAML identity provider if type is federated-authentication"
+  type        = string
+  default     = null
+}

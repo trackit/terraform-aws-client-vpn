@@ -9,6 +9,7 @@ locals {
     "TARGET_CIDR"     = var.target_cidr_block
     "MODULE_PATH"     = path.module
     "CONCURRENCY"     = "true"
+    "AWSCLIPROFILE"   = var.aws_cli_profile_name
   }
 
   clients = concat(var.clients)
@@ -86,8 +87,13 @@ resource "aws_ec2_client_vpn_endpoint" "client_vpn" {
   }
 
   authentication_options {
-    type                       = "certificate-authentication"
-    root_certificate_chain_arn = aws_acm_certificate.server_cert.arn
+    #type                       = "certificate-authentication"
+    #root_certificate_chain_arn = aws_acm_certificate.server_cert.arn
+
+    type                        = var.client_authentication_options
+    active_directory_id         = var.active_directory_id
+    root_certificate_chain_arn  = var.root_certificate_chain_arn
+    saml_provider_arn           = var.saml_provider_arn
   }
 
   connection_log_options {

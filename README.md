@@ -114,6 +114,30 @@ variable "vpn_endpoint_cloudwatch_log_stream" {
   description = "The name of the cloudwatch log stream."
   default = "vpn_endpoint_cloudwatch_log_stream"
 }
+
+variable "vpn_aws_cli_profile_name" {
+  type        = string  
+  description = "the name of the aws cli profile used in scripts"
+  default = "default"
+}
+
+variable "vpn_client_authentication_options" {
+  type        = string  
+  description = "the type of client authentication to be used : certificate-authentication / directory-service-authentication / federated-authentication"
+  default = "federated-authentication"
+}
+
+variable "active_directory_id" {
+  description = "The ID of the Active Directory to be used for authentication if type is directory-service-authentication"
+  type        = string
+  default     = null
+}
+
+variable "saml_provider_arn" {
+  description = "The ARN of the IAM SAML identity provider if type is federated-authentication"
+  type        = string
+  default     = null
+}
 ```
 
 ```hcl
@@ -133,6 +157,10 @@ module "client_vpn" {
   vpn_name              = var.vpn_endpoint_vpn_name
   cloudwatch_log_group  = var.vpn_endpoint_cloudwatch_log_group
   cloudwatch_log_stream = var.vpn_endpoint_cloudwatch_log_stream
+  aws_cli_profile_name  = var.vpn_aws_cli_profile_name
+  client_authentication_options = var.vpn_client_authentication_options
+  active_directory_id   = var.vpn_active_directory_id
+  saml_provider_arn     = var.vpn_saml_provider_arn
 }
 ```
 
