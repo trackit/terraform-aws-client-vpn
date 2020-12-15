@@ -44,10 +44,16 @@ variable "target_cidr_block" {
   description = "The CIDR block to wich the client will have access to. Might be VPC CIDR's block for example."
 }
 
+variable "dns_servers" {
+  description = "Information about the DNS servers to be used for DNS resolution. A Client VPN endpoint can have up to two DNS servers."
+  type        = list(string)
+  default     = null
+}
+
 variable "vpn_name" {
   description = "The name of the VPN Client Connection."
   type        = string
-  default = "My-VPN"
+  default     = "My-VPN"
 }
 
 variable "cloudwatch_log_group" {
@@ -81,7 +87,6 @@ variable "active_directory_id" {
 variable "root_certificate_chain_arn" {
   description = "the type of client authentication to be used : certificate-authentication / directory-service-authentication / federated-authentication"
   type        = string
-  #default     = aws_acm_certificate.server_cert.arn
   default = null
 }
 

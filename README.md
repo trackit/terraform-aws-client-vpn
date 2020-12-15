@@ -24,7 +24,10 @@ Terraform 0.12 and newer.
 
 No provider.
 
-## Usage Example
+## Example usage for your terraform file
+
+### Using federated authentification (better security) :
+=> How to setup federated authentification with aws here : http://URL
 
 ```hcl
 module "client_vpn" {
@@ -33,9 +36,29 @@ module "client_vpn" {
   env                   = "production"
   cert_issuer           = "mycompany.internal"
   cert_server_name      = "mycompany"
-  aws_tenant_name       = "aws-xyz"
-  //key_save_folder
-  clients               = ["my_client1", "my_client2"]
+  aws_tenant_name       = "aws"
+  clients               = ["client"]
+  subnet_id             = "subnet-12345678"
+  client_cidr_block     = "10.250.0.0/16"
+  target_cidr_block     = "10.0.0.0/16"
+  vpn_name              = "My VPN Endpoint"
+  cloudwatch_log_group  = "my_vpn_log_group"
+  cloudwatch_log_stream = "my_vpn_log_stream"
+  vpn_endpoint_client_authentication_options = "federated-authentication"
+  vpn_endpoint_saml_provider_arn = "arn:12345678"
+}
+```
+
+### Certificate authentification only
+```hcl
+module "client_vpn" {
+  source                = "github.com/trackit/terraform-aws-client-vpn?ref=v0.1.0"
+  region                = "us-east-1"
+  env                   = "production"
+  cert_issuer           = "mycompany.internal"
+  cert_server_name      = "mycompany"
+  aws_tenant_name       = "aws"
+  clients               = ["client"]
   subnet_id             = "subnet-12345678"
   client_cidr_block     = "10.250.0.0/16"
   target_cidr_block     = "10.0.0.0/16"
@@ -45,7 +68,45 @@ module "client_vpn" {
 }
 ```
 
-### Alternative example using variables.tf, vpn.tf and envs.tfvars files
+## Alternative example using variables.tf, vpn.tf and envs.tfvars files
+
+```hcl
+# envs.tfvars
+// -- VPN Endpoint
+vpn_endpoint_clients = ["client"]
+vpn_endpoint_cert_issuer = "company.internal"
+vpn_endpoint_cert_server_name ="company"
+vpn_endpoint_aws_tenant_name ="aws"
+vpn_endpoint_client_cidr_block = "10.250.0.0/16"
+vpn_endpoint_target_cidr_block = "10.0.0.0/8"
+vpn_endpoint_vpn_name = "VPN"
+vpn_endpoint_cloudwatch_log_group = "my_vpn_log_group"
+vpn_endpoint_cloudwatch_log_stream = "my_vpn_log_stream"
+vpn_endpoint_client_authentication_options = "federated-authentication"
+vpn_endpoint_saml_provider_arn = "arn:123456"
+```
+
+```hcl
+# vpn.tf
+module "client_vpn" {
+  source                = "github.com/trackit/terraform-aws-client-vpn"
+  region                = var.region
+  env                   = var.env
+  clients               = var.vpn_endpoint_clients
+  cert_issuer           = var.vpn_endpoint_cert_issuer
+  cert_server_name      = var.vpn_endpoint_cert_server_name
+  aws_tenant_name       = var.vpn_endpoint_aws_tenant_name
+  subnet_id             = module.vpc.public_subnets[0]
+  client_cidr_block     = var.vpn_endpoint_client_cidr_block
+  target_cidr_block     = var.vpn_endpoint_target_cidr_block
+  vpn_name              = var.vpn_endpoint_vpn_name
+  cloudwatch_log_group  = var.vpn_endpoint_cloudwatch_log_group
+  cloudwatch_log_stream = var.vpn_endpoint_cloudwatch_log_stream
+  client_authentication_options = var.vpn_endpoint_client_authentication_options
+  saml_provider_arn     = var.vpn_endpoint_saml_provider_arn
+}
+```
+
 ```hcl
 # variables.tf
 /*
@@ -97,6 +158,13 @@ variable "vpn_endpoint_target_cidr_block" {
   description = "The CIDR block to wich the client will have access to. Might be VPC CIDR's block for example."
 }
 
+variable "dns_servers" {
+  description = "Information about the DNS servers to be used for DNS resolution. A Client VPN endpoint can have up to two DNS servers."
+  type        = list(string)
+  default     = null
+}
+
+
 variable "vpn_endpoint_vpn_name" {
   type        = string  
   description = "The name of the VPN Client Connection."
@@ -138,44 +206,4 @@ variable "saml_provider_arn" {
   type        = string
   default     = null
 }
-```
-
-```hcl
-# vpn.tf
-module "client_vpn" {
-  source                = "github.com/trackit/terraform-aws-client-vpn"
-  region                = var.region
-  env                   = var.env
-  clients               = var.vpn_endpoint_clients
-  cert_issuer           = var.vpn_endpoint_cert_issuer
-  cert_server_name      = var.vpn_endpoint_cert_server_name
-  aws_tenant_name       = var.vpn_endpoint_aws_tenant_name
-  //key_save_folder     = var.vpn_endpoint_key_save_folder
-  subnet_id             = var.vpn_endpoint_subnet_id
-  client_cidr_block     = var.vpn_endpoint_client_cidr_block
-  target_cidr_block     = var.vpn_endpoint_target_cidr_block
-  vpn_name              = var.vpn_endpoint_vpn_name
-  cloudwatch_log_group  = var.vpn_endpoint_cloudwatch_log_group
-  cloudwatch_log_stream = var.vpn_endpoint_cloudwatch_log_stream
-  aws_cli_profile_name  = var.vpn_aws_cli_profile_name
-  client_authentication_options = var.vpn_client_authentication_options
-  active_directory_id   = var.vpn_active_directory_id
-  saml_provider_arn     = var.vpn_saml_provider_arn
-}
-```
-
-```hcl
-# envs.tfvars
-// -- VPN Endpoint
-vpn_endpoint_clients = ["user1"]
-vpn_endpoint_cert_issuer = "company.internal"
-vpn_endpoint_cert_server_name ="company"
-vpn_endpoint_aws_tenant_name ="aws-xyz"
-//vpn_endpoint_key_save_folder =
-vpn_endpoint_subnet_id = "subnet-123456"
-vpn_endpoint_client_cidr_block = "10.250.0.0/16"
-vpn_endpoint_target_cidr_block = ["10.0.100.0/24","10.0.200.0/24"]
-vpn_endpoint_vpn_name = "My-VPN"
-vpn_endpoint_cloudwatch_log_group = "my_vpn_log_group"
-vpn_endpoint_cloudwatch_log_stream = "my_vpn_log_stream"
 ```

@@ -75,21 +75,18 @@ resource "null_resource" "client_certificate" {
 }
 
 resource "aws_ec2_client_vpn_endpoint" "client_vpn" {
-  #depends_on             = [aws_acm_certificate.client_cert, aws_acm_certificate.server_cert]
   depends_on             = [aws_acm_certificate.server_cert]
   description            = var.vpn_name
   server_certificate_arn = aws_acm_certificate.server_cert.arn
   client_cidr_block      = var.client_cidr_block
   split_tunnel           = true
+  dns_servers            = var.dns_servers
 
   lifecycle {
     ignore_changes = [server_certificate_arn, authentication_options]
   }
 
   authentication_options {
-    #type                       = "certificate-authentication"
-    #root_certificate_chain_arn = aws_acm_certificate.server_cert.arn
-
     type                        = var.client_authentication_options
     active_directory_id         = var.active_directory_id
     root_certificate_chain_arn  = var.root_certificate_chain_arn
