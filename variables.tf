@@ -81,7 +81,8 @@ variable "active_directory_id" {
 variable "root_certificate_chain_arn" {
   description = "the type of client authentication to be used : certificate-authentication / directory-service-authentication / federated-authentication"
   type        = string
-  default     = aws_acm_certificate.server_cert.arn
+  #default     = aws_acm_certificate.server_cert.arn
+  default = null
 }
 
 variable "saml_provider_arn" {
