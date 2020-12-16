@@ -40,7 +40,7 @@ $ terraform destroy
 ```
 
 
-## Example usage for your terraform file
+## Example
 
 ### Using federated authentification (better security) :
 => How to setup federated authentification with aws sso here : http://ARTICLE
@@ -92,6 +92,7 @@ vpn_endpoint_clients = ["client"]
 vpn_endpoint_cert_issuer = "company.internal"
 vpn_endpoint_cert_server_name ="company"
 vpn_endpoint_aws_tenant_name ="aws"
+vpn_endpoint_subnet_id         = "subnet-12345678"
 vpn_endpoint_client_cidr_block = "10.250.0.0/16"
 vpn_endpoint_target_cidr_block = "10.0.0.0/8"
 vpn_endpoint_vpn_name = "VPN"
