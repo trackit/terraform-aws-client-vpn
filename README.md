@@ -166,7 +166,7 @@ fi
 ```
 
 The server certificate is then created into an ACM ressource.
-```bash
+```sh
 resource "aws_acm_certificate" "server_cert" {
   depends_on = [null_resource.server_certificate]
 
@@ -184,7 +184,7 @@ resource "aws_acm_certificate" "server_cert" {
 ```
 
 ### 2. Client certificate generation
-```bash
+```sh
 #!/usr/bin/env bash
 set -x 
 
@@ -240,7 +240,7 @@ resource "aws_ec2_client_vpn_endpoint" "client_vpn" {
 ```
 
 ### 4. Authorize the VPN Traffic
-```bash
+```sh
 #!/usr/bin/env bash
 set -x 
 
