@@ -21,7 +21,7 @@ Terraform 0.12 and newer.
 | aws | >= 2.49 |
 
 ## Upcoming features
-- Certificate revocation list
+- Client certificate revocation list
 - Self Service VPN Portal
 
 
@@ -114,7 +114,7 @@ module "client_vpn" {
 | root_certificate_chain_arn | The ARN of the client certificate. The certificate must be signed by a certificate authority (CA) and it must be provisioned in AWS Certificate Manager (ACM). Only necessary when type is set to certificate-authentication. | string | null |
 | saml_provider_arn | The ARN of the IAM SAML identity provider if type is federated-authentication | string | null |
 
-## Output
+### Output
 | Name | Description |
 |------|-------------|
 | kms_sops_arn | |
@@ -179,8 +179,6 @@ resource "aws_acm_certificate" "server_cert" {
 ```
 
 ### 2. Client certificate generation
-Generate the client certificate.
-
 ```bash
 #!/usr/bin/env bash
 set -x 
@@ -236,7 +234,7 @@ resource "aws_ec2_client_vpn_endpoint" "client_vpn" {
 }
 ```
 
-### 4. Authorize the VPN Traffic Ingress
+### 4. Authorize the VPN Traffic
 ```bash
 #!/usr/bin/env bash
 set -x 
@@ -244,8 +242,8 @@ set -x
 aws ec2 authorize-client-vpn-ingress --profile $AWSCLIPROFILE --client-vpn-endpoint-id $CLIENT_VPN_ID --target-network-cidr $TARGET_CIDR --authorize-all-groups
 ```
 
-### 5. Generate the vpn configuration file
-Create the VPN Configuration file into your terraform folder.
+### 5. Generate the vpn configuration
+Create the VPN Configuration into your terraform folder.
 ```bash
 #!/usr/bin/env bash
 set -x
