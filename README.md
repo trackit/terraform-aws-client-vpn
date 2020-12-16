@@ -53,8 +53,9 @@ $ terraform destroy
 
 ### Using federated authentification (better security) :
 - How to setup federated authentification with aws sso here : http://ARTICLE
-- You can find the generated Client VPN configuration into your terraform folder.
 - AWS VPN Client download link : https://aws.amazon.com/vpn/client-vpn-download/
+- You can find the generated Client VPN configuration into your terraform folder.
+- Each user have a login/password to authenticate.
 
 ```hcl
 module "client_vpn" {
@@ -76,7 +77,6 @@ module "client_vpn" {
 
 ### Server certificate authentification only (less secure)
 - You can find the generated Client VPN configuration into your terraform folder.
-- AWS VPN Client download link : https://aws.amazon.com/vpn/client-vpn-download/
 - Be carefull no user/password needed. Only the configuration file so do not lost it.
 
 ```hcl
