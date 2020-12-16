@@ -77,7 +77,7 @@ module "client_vpn" {
 ### Server certificate authentification only (less secure)
 - You can find the generated Client VPN configuration into your terraform folder.
 - AWS VPN Client download link : https://aws.amazon.com/vpn/client-vpn-download/
-- Be carefull no user/password needed. Only the configuration file so do no lost it.
+- Be carefull no user/password needed. Only the configuration file so do not lost it.
 
 ```hcl
 module "client_vpn" {
