@@ -20,18 +20,34 @@ Terraform 0.12 and newer.
 | terraform | >= 0.12 |
 | aws | >= 2.49 |
 
-## Providers
+## Terraform
 
-No provider.
+This project is using terraform to deploy infrastructure, you can download it here: https://learn.hashicorp.com/tutorials/terraform/install-cli
+
+### Deploy
+
+```sh
+$ cd ./tf
+$ terraform init
+$ terraform plan
+$ terraform apply
+```
+
+### Destroy
+
+```sh
+$ terraform destroy
+```
+
 
 ## Example usage for your terraform file
 
 ### Using federated authentification (better security) :
-=> How to setup federated authentification with aws here : http://URL
+=> How to setup federated authentification with aws sso here : http://ARTICLE
 
 ```hcl
 module "client_vpn" {
-  source                = "github.com/trackit/terraform-aws-client-vpn?ref=v0.1.0"
+  source                = "github.com/trackit/terraform-aws-client-vpn?ref=v0.2.0"
   region                = "us-east-1"
   env                   = "production"
   cert_issuer           = "mycompany.internal"
@@ -50,7 +66,7 @@ module "client_vpn" {
 ### Certificate authentification only
 ```hcl
 module "client_vpn" {
-  source                = "github.com/trackit/terraform-aws-client-vpn?ref=v0.1.0"
+  source                = "github.com/trackit/terraform-aws-client-vpn?ref=v0.2.0"
   region                = "us-east-1"
   env                   = "production"
   cert_issuer           = "mycompany.internal"
@@ -61,10 +77,13 @@ module "client_vpn" {
   client_cidr_block     = "10.250.0.0/16"
   target_cidr_block     = "10.0.0.0/16"
   vpn_name              = "My VPN Endpoint"
+  client_authentication_options = "certificate-authentication"
 }
 ```
 
-## Alternative example using variables.tf, vpn.tf and envs.tfvars files
+## Alternative example using tfvars file
+
+You may want use this project with `terraform workspace` and a `envs` directory to deploy different configuration files (prod.tfvars, dev.tfvars...)
 
 ```hcl
 # envs.tfvars
@@ -90,7 +109,7 @@ module "client_vpn" {
   cert_issuer           = var.vpn_endpoint_cert_issuer
   cert_server_name      = var.vpn_endpoint_cert_server_name
   aws_tenant_name       = var.vpn_endpoint_aws_tenant_name
-  subnet_id             = module.vpc.public_subnets[0]
+  subnet_id             = var.vpn_vpn_endpoint_subnet_id
   client_cidr_block     = var.vpn_endpoint_client_cidr_block
   target_cidr_block     = var.vpn_endpoint_target_cidr_block
   vpn_name              = var.vpn_endpoint_vpn_name
