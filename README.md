@@ -38,6 +38,10 @@ $ terraform init
 $ terraform plan
 $ terraform apply
 ```
+You may need add execution permission :
+```sh
+chmod u+x .terraform/modules/client_vpn/scripts/*
+```
 
 ### Destroy
 
@@ -133,8 +137,8 @@ module "client_vpn" {
 
 ### 1. Server certificate generation
 Clone and use the latest easy-rsa repo to generate the ca and server certificate.
-
-```bash
+All the PKI configuration files are saved into your terraform folder.
+```sh
 #!/usr/bin/env bash
 
 set -x
