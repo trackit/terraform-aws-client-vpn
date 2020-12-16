@@ -1,37 +1,41 @@
 variable "region" {
-  type        = string
   description = "Region to work on."
+  type        = string
 }
 
-variable "env" {
-  type        = string  
+variable "env" {  
   description = "The environment (e.g. prod, dev, stage)"
+  type        = string
   default = "prod"
 }
 
-variable "clients" {
-  type        = list(string)  
+variable "clients" {  
   description = "A list of client certificate name"
+  type        = list(string)
   default = ["client"]
 }
 
-variable "cert_issuer" {
+variable "cert_issuer" { 
   description = "Common Name for CA Certificate"
+  type        = string
   default = "CA"
 }
 
-variable "cert_server_name" {
+variable "cert_server_name" { 
   description = "Name for the Server Certificate"
+  type        = string
   default = "Server"
 }
 
 variable "aws_tenant_name" {
   description = "Name for the AWS Tenant"
+  type        = string 
   default = "AWS"
 }
 
 variable "key_save_folder" {
   description = "Where to store keys (relative to pki folder)"
+  type        = string 
   default     = "clientvpn_keys"
 }
 
@@ -47,6 +51,7 @@ variable "client_cidr_block" {
 
 variable "target_cidr_block" {
   description = "The CIDR block to wich the client will have access to. Might be VPC CIDR's block for example."
+  type        = string
 }
 
 variable "dns_servers" {
@@ -80,12 +85,12 @@ variable "cloudwatch_log_stream" {
 }
 
 variable "aws_cli_profile_name" {
-  description = "the name of the aws cli profile used in scripts"
+  description = "The name of the aws cli profile used in scripts"
   type        = string
   default     = "default"
 }
 
-variable "client_authentication_options" {
+variable "client_auth" {
   description = "the type of client authentication to be used : certificate-authentication / directory-service-authentication / federated-authentication"
   type        = string
   default     = "certificate-authentication"
@@ -98,7 +103,7 @@ variable "active_directory_id" {
 }
 
 variable "root_certificate_chain_arn" {
-  description = "the type of client authentication to be used : certificate-authentication / directory-service-authentication / federated-authentication"
+  description = "The ARN of the client certificate. The certificate must be signed by a certificate authority (CA) and it must be provisioned in AWS Certificate Manager (ACM). Only necessary when type is set to certificate-authentication."
   type        = string
   default = null
 }

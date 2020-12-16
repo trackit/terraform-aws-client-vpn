@@ -87,7 +87,7 @@ resource "aws_ec2_client_vpn_endpoint" "client_vpn" {
   }
 
   authentication_options {
-    type                        = var.client_authentication_options
+    type                        = var.client_auth
     active_directory_id         = var.active_directory_id
     root_certificate_chain_arn  = var.root_certificate_chain_arn
     saml_provider_arn           = var.saml_provider_arn
