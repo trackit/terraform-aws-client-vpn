@@ -19,6 +19,7 @@ Terraform 0.12 and newer.
 |------|---------|
 | terraform | >= 0.12 |
 | aws | >= 2.49 |
+| bash |  |
 
 ## Upcoming features
 - Client certificate revocation list
