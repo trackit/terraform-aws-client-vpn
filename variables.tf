@@ -1,13 +1,18 @@
 variable "region" {
-  description = "Selected AWS region"
+  type        = string
+  description = "Region to work on."
 }
 
 variable "env" {
+  type        = string  
   description = "The environment (e.g. prod, dev, stage)"
+  default = "prod"
 }
 
 variable "clients" {
+  type        = list(string)  
   description = "A list of client certificate name"
+  default = ["client"]
 }
 
 variable "cert_issuer" {
@@ -53,17 +58,25 @@ variable "dns_servers" {
 variable "vpn_name" {
   description = "The name of the VPN Client Connection."
   type        = string
-  default     = "My-VPN"
+  default     = "VPN"
+}
+
+variable "cloudwatch_enabled" {
+  description = "Indicates whether connection logging is enabled."
+  type = bool
+  default = true
 }
 
 variable "cloudwatch_log_group" {
   description = "The name of the cloudwatch log group."
   type        = string
+  default = "vpn_endpoint_cloudwatch_log_group"
 }
 
 variable "cloudwatch_log_stream" {
   description = "The name of the cloudwatch log stream."
   type        = string
+  default = "vpn_endpoint_cloudwatch_log_stream"
 }
 
 variable "aws_cli_profile_name" {

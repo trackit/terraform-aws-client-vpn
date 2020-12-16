@@ -42,10 +42,8 @@ module "client_vpn" {
   client_cidr_block     = "10.250.0.0/16"
   target_cidr_block     = "10.0.0.0/16"
   vpn_name              = "My VPN Endpoint"
-  cloudwatch_log_group  = "my_vpn_log_group"
-  cloudwatch_log_stream = "my_vpn_log_stream"
-  vpn_endpoint_client_authentication_options = "federated-authentication"
-  vpn_endpoint_saml_provider_arn = "arn:12345678"
+  client_authentication_options = "federated-authentication"
+  saml_provider_arn = "arn:12345678"
 }
 ```
 
@@ -63,8 +61,6 @@ module "client_vpn" {
   client_cidr_block     = "10.250.0.0/16"
   target_cidr_block     = "10.0.0.0/16"
   vpn_name              = "My VPN Endpoint"
-  cloudwatch_log_group  = "my_vpn_log_group"
-  cloudwatch_log_stream = "my_vpn_log_stream"
 }
 ```
 
@@ -80,8 +76,6 @@ vpn_endpoint_aws_tenant_name ="aws"
 vpn_endpoint_client_cidr_block = "10.250.0.0/16"
 vpn_endpoint_target_cidr_block = "10.0.0.0/8"
 vpn_endpoint_vpn_name = "VPN"
-vpn_endpoint_cloudwatch_log_group = "my_vpn_log_group"
-vpn_endpoint_cloudwatch_log_stream = "my_vpn_log_stream"
 vpn_endpoint_client_authentication_options = "federated-authentication"
 vpn_endpoint_saml_provider_arn = "arn:123456"
 ```
@@ -100,8 +94,6 @@ module "client_vpn" {
   client_cidr_block     = var.vpn_endpoint_client_cidr_block
   target_cidr_block     = var.vpn_endpoint_target_cidr_block
   vpn_name              = var.vpn_endpoint_vpn_name
-  cloudwatch_log_group  = var.vpn_endpoint_cloudwatch_log_group
-  cloudwatch_log_stream = var.vpn_endpoint_cloudwatch_log_stream
   client_authentication_options = var.vpn_endpoint_client_authentication_options
   saml_provider_arn     = var.vpn_endpoint_saml_provider_arn
 }
@@ -164,11 +156,16 @@ variable "dns_servers" {
   default     = null
 }
 
-
 variable "vpn_endpoint_vpn_name" {
   type        = string  
   description = "The name of the VPN Client Connection."
   default = "My-VPN"
+}
+
+variable "cloudwatch_enabled" {
+  description = "Indicates whether connection logging is enabled."
+  type = bool
+  default = true
 }
 
 variable "vpn_endpoint_cloudwatch_log_group" {

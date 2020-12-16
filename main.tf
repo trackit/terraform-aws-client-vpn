@@ -94,7 +94,7 @@ resource "aws_ec2_client_vpn_endpoint" "client_vpn" {
   }
 
   connection_log_options {
-    enabled               = true
+    enabled               = var.cloudwatch_enabled
     cloudwatch_log_group  = aws_cloudwatch_log_group.client_vpn.name
     cloudwatch_log_stream = aws_cloudwatch_log_stream.client_vpn.name
   }
