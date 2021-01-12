@@ -38,7 +38,7 @@ $ terraform init
 $ terraform plan
 $ terraform apply
 ```
-You may need add execution permission :
+You may need to add execution permission :
 ```sh
 chmod u+x .terraform/modules/client_vpn/scripts/*
 ```
