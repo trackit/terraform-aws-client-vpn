@@ -51,7 +51,7 @@ $ terraform destroy
 
 ## Example
 
-### Using federated authentification (better security) :
+### Using federated authentification (best security) :
 - How to setup federated authentification with aws sso here : http://ARTICLE
 - AWS VPN Client download link : https://aws.amazon.com/vpn/client-vpn-download/
 - You can find the generated Client VPN configuration into your terraform folder.
