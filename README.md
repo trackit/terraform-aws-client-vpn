@@ -135,17 +135,17 @@ module "client_vpn" {
 
 ## How does it work ?
 
-### 1. Server certificate generation (scripts/prepare_easyrsa.sh)
+### Server certificate generation (scripts/prepare_easyrsa.sh)
 1. Clone the latest [easy-rsa](https://github.com/OpenVPN/easy-rsa.git) repo.
 2. Generate the CA and Server certificates and keys.
 3. Copy the files to the defined KEY_SAVE_FOLDER.
 4. the Server certificate is uploaded into AWS ACM.
 
-### 2. Client certificate generation (scripts/create_client.sh)
+### Client certificate generation (scripts/create_client.sh)
 1. Using the previous created PKI, generate a client certificate / key pair.
 2. Then move it to the KEY_SAVE_FOLDER.
 
-### 3. Create a VPN Endpoint Ressource
+### Create a VPN Endpoint Ressource
 
 ```hcl
 resource "aws_ec2_client_vpn_endpoint" "client_vpn" {
@@ -186,10 +186,10 @@ resource "aws_ec2_client_vpn_endpoint" "client_vpn" {
 }
 ```
 
-### 4. Authorize the VPN Traffic (scripts/authorize_client.sh)
+### Authorize the VPN Traffic (scripts/authorize_client.sh)
 1. With aws-cli allow traffic to TARGET_CIDR from CLIENT_VPN_ID
 
-### 5. Generate the vpn configuration (scripts/export_client_vpn_config.sh)
+### Generate the vpn configuration (scripts/export_client_vpn_config.sh)
 1. With aws-cli export the ovpn configuration file.
 2. Add the client certificate to end of it.
 3. Add the opvn configuration to AWS VPN Client.
