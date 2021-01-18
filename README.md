@@ -52,7 +52,6 @@ $ terraform destroy
 ## Example
 
 ### Using federated authentification (best security) :
-- How to setup federated authentification with aws sso here : http://ARTICLE
 - AWS VPN Client download link : https://aws.amazon.com/vpn/client-vpn-download/
 - You can find the generated Client VPN configuration into your terraform folder.
 - Each user have a login/password to authenticate.
@@ -136,71 +135,18 @@ module "client_vpn" {
 
 ## How does it work ?
 
-### 1. Server certificate generation
-Clone and use the latest easy-rsa repo to generate the ca and server certificate.
-All the PKI configuration files are saved into your terraform folder.
-```sh
-#!/usr/bin/env bash
+### 1. Server certificate generation (scripts/prepare_easyrsa.sh)
+1. Clone the latest [easy-rsa](https://github.com/OpenVPN/easy-rsa.git) repo.
+2. Generate the CA and Server certificates and keys.
+3. Copy the files to the defined KEY_SAVE_FOLDER.
+4. the Server certificate is uploaded into AWS ACM.
 
-set -x
+### 2. Client certificate generation (scripts/create_client.sh)
+1. Using the previous created PKI, generate a client certificate / key pair.
+2. Then move it to the KEY_SAVE_FOLDER.
 
-CWD=$(pwd)
+### 3. Create a VPN Endpoint Ressource
 
-if [ -d "$PKI_FOLDER_NAME" ]; then
-    echo "PKI seems to be already configured."
-else
-    echo "Need to pull project"
-    git clone https://github.com/OpenVPN/easy-rsa.git
-    mkdir $PKI_FOLDER_NAME
-    cp -r easy-rsa/easyrsa3/* $PKI_FOLDER_NAME
-    rm -rf easy-rsa
-    cd $PKI_FOLDER_NAME
-    ./easyrsa init-pki
-    echo $CERT_ISSUER | ./easyrsa build-ca nopass
-    ./easyrsa build-server-full server nopass
-    mkdir $KEY_SAVE_FOLDER
-    cp pki/ca.crt $KEY_SAVE_FOLDER
-    cp pki/issued/server.crt $KEY_SAVE_FOLDER
-    cp pki/private/server.key $KEY_SAVE_FOLDER
-    cd $KEY_SAVE_FOLDER
-fi
-```
-
-The server certificate is then created into an ACM ressource.
-```sh
-resource "aws_acm_certificate" "server_cert" {
-  depends_on = [null_resource.server_certificate]
-
-  private_key       = data.local_file.server_private_key.content
-  certificate_body  = data.local_file.server_certificate_body.content
-  certificate_chain = data.local_file.server_certificate_chain.content
-
-  lifecycle {
-    ignore_changes = [options, private_key, certificate_body, certificate_chain]
-  }
-  tags = {
-    Name = var.cert_server_name
-  }
-}
-```
-
-### 2. Client certificate generation
-```sh
-#!/usr/bin/env bash
-set -x 
-
-CWD=$(pwd)
-FULL_CLIENT_CERTIFICATE_NAME=$CLIENT_CERT_NAME.$CERT_ISSUER
-
-
-cd $PKI_FOLDER_NAME
-./easyrsa build-client-full $FULL_CLIENT_CERTIFICATE_NAME nopass
-cp pki/issued/$FULL_CLIENT_CERTIFICATE_NAME.crt $KEY_SAVE_FOLDER
-cp pki/private/$FULL_CLIENT_CERTIFICATE_NAME.key $KEY_SAVE_FOLDER
-cd $KEY_SAVE_FOLDER
-```
-
-### 3. Create VPN Endpoint Ressource
 ```hcl
 resource "aws_ec2_client_vpn_endpoint" "client_vpn" {
   depends_on             = [aws_acm_certificate.server_cert]
@@ -240,177 +186,11 @@ resource "aws_ec2_client_vpn_endpoint" "client_vpn" {
 }
 ```
 
-### 4. Authorize the VPN Traffic
-```sh
-#!/usr/bin/env bash
-set -x 
+### 4. Authorize the VPN Traffic (scripts/authorize_client.sh)
+1. With aws-cli allow traffic to TARGET_CIDR from CLIENT_VPN_ID
 
-aws ec2 authorize-client-vpn-ingress --profile $AWSCLIPROFILE --client-vpn-endpoint-id $CLIENT_VPN_ID --target-network-cidr $TARGET_CIDR --authorize-all-groups
-```
-
-### 5. Generate the vpn configuration
-Create the VPN Configuration into your terraform folder.
-```bash
-#!/usr/bin/env bash
-set -x
-
-KEY_SAVE_FOLDER_PATH=$PKI_FOLDER_NAME/$KEY_SAVE_FOLDER
-FULL_CLIENT_CERTIFICATE_NAME=$CLIENT_CERT_NAME.$TENANT_NAME
-CLIENT_CERTIFICATE=$CLIENT_CERT_NAME.$CERT_ISSUER
-
-aws ec2 export-client-vpn-client-configuration --client-vpn-endpoint-id $CLIENT_VPN_ID --output text > $FULL_CLIENT_CERTIFICATE_NAME.ovpn
-
-sed -i "s/"$CLIENT_VPN_ID"/"$TENANT_NAME.$CLIENT_VPN_ID"/g" $FULL_CLIENT_CERTIFICATE_NAME.ovpn
-echo "<cert>" >> $FULL_CLIENT_CERTIFICATE_NAME.ovpn
-cat $KEY_SAVE_FOLDER_PATH/$CLIENT_CERTIFICATE.crt >> $FULL_CLIENT_CERTIFICATE_NAME.ovpn
-echo "</cert>" >> $FULL_CLIENT_CERTIFICATE_NAME.ovpn
-
-echo "<key>" >> $FULL_CLIENT_CERTIFICATE_NAME.ovpn
-cat $KEY_SAVE_FOLDER_PATH/$CLIENT_CERTIFICATE.key >> $FULL_CLIENT_CERTIFICATE_NAME.ovpn
-echo "</key>" >> $FULL_CLIENT_CERTIFICATE_NAME.ovpn
-```
-
-
-## Alternative example using tfvars file
-
-You may want use this project with `terraform workspace` and a `envs` directory to deploy different configuration files (prod.tfvars, dev.tfvars...)
-
-```hcl
-# envs.tfvars
-// -- VPN Endpoint
-vpn_endpoint_clients = ["client"]
-vpn_endpoint_cert_issuer = "company.internal"
-vpn_endpoint_cert_server_name ="company"
-vpn_endpoint_aws_tenant_name ="aws"
-vpn_endpoint_subnet_id         = "subnet-12345678"
-vpn_endpoint_client_cidr_block = "10.250.0.0/16"
-vpn_endpoint_target_cidr_block = "10.0.0.0/8"
-vpn_endpoint_vpn_name = "VPN"
-vpn_endpoint_client_auth = "federated-authentication"
-vpn_endpoint_saml_provider_arn = "arn:123456"
-```
-
-```hcl
-# vpn.tf
-module "client_vpn" {
-  source                = "github.com/trackit/terraform-aws-client-vpn"
-  region                = var.region
-  env                   = var.env
-  clients               = var.vpn_endpoint_clients
-  cert_issuer           = var.vpn_endpoint_cert_issuer
-  cert_server_name      = var.vpn_endpoint_cert_server_name
-  aws_tenant_name       = var.vpn_endpoint_aws_tenant_name
-  subnet_id             = var.vpn_endpoint_endpoint_subnet_id
-  client_cidr_block     = var.vpn_endpoint_client_cidr_block
-  target_cidr_block     = var.vpn_endpoint_target_cidr_block
-  vpn_name              = var.vpn_endpoint_vpn_name
-  client_client_auth    = var.vpn_endpoint_client_auth
-  saml_provider_arn     = var.vpn_endpoint_saml_provider_arn
-}
-```
-
-```hcl
-# variables.tf
-/*
-// VPN Endpoint variables
-*/
-
-variable "vpn_endpoint_clients" {
-  type        = list(string)
-  description = "A list of client certificate name"
-  default = ["client"]
-}
-
-variable "vpn_endpoint_cert_issuer" {
-  type        = string
-  description = "Common Name for CA Certificate"
-  default = "CA"
-}
-
-variable "vpn_endpoint_cert_server_name" {
-  type        = string  
-  description = "Name for the Server Certificate"
-  default = "Server"
-}
-
-variable "vpn_endpoint_aws_tenant_name" {
-  type        = string  
-  description = "Name for the AWS Tenant"
-  default = "AWS"
-}
-
-variable "vpn_endpoint_key_save_folder" {
-  type        = string  
-  description = "Where to store keys (relative to pki folder)"
-  default     = "clientvpn_keys"
-}
-
-variable "vpn_endpoint_subnet_id" {
-  type        = string
-  description = "The subnet ID to which we need to associate the VPN Client Connection."
-}
-
-variable "vpn_endpoint_client_cidr_block" {
-  type        = string  
-  description = "VPN CIDR block, must not overlap with VPC CIDR. Client cidr block must be at least a /22 range."
-}
-
-variable "vpn_endpoint_target_cidr_block" {
-  type        = string  
-  description = "The CIDR block to wich the client will have access to. Might be VPC CIDR's block for example."
-}
-
-variable "vpn_endpoint_dns_servers" {
-  type        = list(string)  
-  description = "Information about the DNS servers to be used for DNS resolution. A Client VPN endpoint can have up to two DNS servers."
-  default     = null
-}
-
-variable "vpn_endpoint_vpn_name" {
-  type        = string  
-  description = "The name of the VPN Client Connection."
-  default = "My-VPN"
-}
-
-variable "vpn_endpoint_cloudwatch_enabled" {
-  type = bool  
-  description = "Indicates whether connection logging is enabled."
-  default = true
-}
-
-variable "vpn_endpoint_cloudwatch_log_group" {
-  type        = string  
-  description = "The name of the cloudwatch log group."
-  default = "vpn_endpoint_cloudwatch_log_group"
-}
-
-variable "vpn_endpoint_cloudwatch_log_stream" {
-  type        = string  
-  description = "The name of the cloudwatch log stream."
-  default = "vpn_endpoint_cloudwatch_log_stream"
-}
-
-variable "vpn_aws_cli_profile_name" {
-  type        = string  
-  description = "the name of the aws cli profile used in scripts"
-  default = "default"
-}
-
-variable "vpn_endpoint_client_auth" {
-  type        = string  
-  description = "the type of client authentication to be used : certificate-authentication / directory-service-authentication / federated-authentication"
-  default = "federated-authentication"
-}
-
-variable "vpn_endpoint_active_directory_id" {
-  type        = string
-  description = "The ID of the Active Directory to be used for authentication if type is directory-service-authentication"
-  default     = null
-}
-
-variable "vpn_endpoint_saml_provider_arn" {
-  type        = string  
-  description = "The ARN of the IAM SAML identity provider if type is federated-authentication"
-  default     = null
-}
-```
+### 5. Generate the vpn configuration (scripts/export_client_vpn_config.sh)
+1. With aws-cli export the ovpn configuration file.
+2. Add the client certificate to end of it.
+3. Add the opvn configuration to AWS VPN Client.
+4. Start the VPN.
