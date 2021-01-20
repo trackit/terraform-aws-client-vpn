@@ -9,6 +9,7 @@ locals {
     "TARGET_CIDR"     = var.target_cidr_block
     "MODULE_PATH"     = path.module
     "CONCURRENCY"     = "true"
+    "AWSCLIPROFILE"   = var.aws_cli_profile_name
   }
 
   clients = concat(var.clients)
@@ -74,24 +75,26 @@ resource "null_resource" "client_certificate" {
 }
 
 resource "aws_ec2_client_vpn_endpoint" "client_vpn" {
-  #depends_on             = [aws_acm_certificate.client_cert, aws_acm_certificate.server_cert]
   depends_on             = [aws_acm_certificate.server_cert]
   description            = var.vpn_name
   server_certificate_arn = aws_acm_certificate.server_cert.arn
   client_cidr_block      = var.client_cidr_block
   split_tunnel           = true
+  dns_servers            = var.dns_servers
 
   lifecycle {
     ignore_changes = [server_certificate_arn, authentication_options]
   }
 
   authentication_options {
-    type                       = "certificate-authentication"
-    root_certificate_chain_arn = aws_acm_certificate.server_cert.arn
+    type                        = var.client_auth
+    active_directory_id         = var.active_directory_id
+    root_certificate_chain_arn  = aws_acm_certificate.server_cert.arn
+    saml_provider_arn           = var.saml_provider_arn
   }
 
   connection_log_options {
-    enabled               = true
+    enabled               = var.cloudwatch_enabled
     cloudwatch_log_group  = aws_cloudwatch_log_group.client_vpn.name
     cloudwatch_log_stream = aws_cloudwatch_log_stream.client_vpn.name
   }
